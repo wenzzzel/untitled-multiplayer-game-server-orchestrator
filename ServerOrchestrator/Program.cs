@@ -9,7 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 const string apiKey = "some-long-random-secret"; // move to config/env var
-const string imageName = "ghcr.io/wenzzzel/untitled-multiplayer-game:latest";
+const string imageName = "ghcr.io/wenzzzel/untitled-multiplayer-game";
+const string imageTag = "latest";
 const string containerPort = "7777/udp"; // match your server's actual port/protocol
 
 var dockerClient = new DockerClientConfiguration(
@@ -23,9 +24,15 @@ app.MapPost("/lobbies", async (HttpContext ctx) =>
 
     var lobbyId = Guid.NewGuid().ToString("N")[..8];
 
+    // Pull the latest image before starting the container. No-op if already up to date.
+    await dockerClient.Images.CreateImageAsync(
+        new ImagesCreateParameters { FromImage = imageName, Tag = imageTag },
+        authConfig: null,
+        progress: new Progress<JSONMessage>());
+
     var createResponse = await dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
     {
-        Image = imageName,
+        Image = $"{imageName}:{imageTag}",
         Name = $"lobby-{lobbyId}",
         Env = new List<string> { $"LOBBY_ID={lobbyId}" },
         ExposedPorts = new Dictionary<string, EmptyStruct>
