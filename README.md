@@ -11,16 +11,15 @@ docker run --rm \
   -e ApiKey="put-api-key-here" \
   -e Ghcr__Username="put-username-here" \
   -e Ghcr__Token="put-token-here" \
-  server-orchestrator
+  ghcr.io/wenzzzel/untitled-multiplayer-game-server-orchestrator:latest
 ```
 ## Docker Compose
 
 ```
 services:
   orchestrator:
-    build: .
-    image: server-orchestrator
-    container_name: server-orchestrator
+    image: ghcr.io/wenzzzel/untitled-multiplayer-game-server-orchestrator:latest
+    container_name: untitled-multiplayer-game-server-orchestrator
     ports:
       - "8000:8000"
     volumes:
