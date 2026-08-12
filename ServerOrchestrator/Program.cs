@@ -12,6 +12,7 @@ var app = builder.Build();
 const string imageName = "ghcr.io/wenzzzel/untitled-multiplayer-game";
 const string imageTag = "latest";
 const string containerPort = "7777/udp"; // match your server's actual port/protocol
+const string hostPortRange = "20000-20099"; // Docker picks a free port in this range; open the same range in your firewall
 
 var apiKey = builder.Configuration["ApiKey"]
     ?? throw new InvalidOperationException("Missing configuration: ApiKey");
@@ -65,7 +66,7 @@ app.MapPost("/lobbies", async (HttpContext ctx) =>
             AutoRemove = true, // container deletes itself once the process exits
             PortBindings = new Dictionary<string, IList<PortBinding>>
             {
-                { containerPort, new List<PortBinding> { new() { HostPort = "0" } } } // "0" = let Docker pick a free port
+                { containerPort, new List<PortBinding> { new() { HostPort = hostPortRange } } }
             }
         }
     });
