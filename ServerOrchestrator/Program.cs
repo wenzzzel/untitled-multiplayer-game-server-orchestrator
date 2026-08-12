@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Builder;
@@ -25,6 +26,13 @@ var ghcrAuth = new AuthConfig
     Username = ghcrUsername,
     Password = ghcrToken
 };
+
+var publicHost = builder.Configuration["PublicHost"];
+if (string.IsNullOrEmpty(publicHost))
+{
+    using var http = new HttpClient();
+    publicHost = (await http.GetStringAsync("https://api.ipify.org")).Trim();
+}
 
 var dockerClient = new DockerClientConfiguration(
     new Uri("unix:///var/run/docker.sock"))
@@ -68,7 +76,7 @@ app.MapPost("/lobbies", async (HttpContext ctx) =>
     var inspect = await dockerClient.Containers.InspectContainerAsync(createResponse.ID);
     var hostPort = inspect.NetworkSettings.Ports[containerPort][0].HostPort;
 
-    return Results.Ok(new { lobbyId, port = hostPort });
+    return Results.Ok(new { lobbyId, host = publicHost, port = hostPort });
 });
 
 app.Run("http://0.0.0.0:8000");
